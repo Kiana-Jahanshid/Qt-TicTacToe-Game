@@ -107,8 +107,8 @@ def new_game():
     for i in range(3):
         for j in range(3):
             buttons[i][j].setText("")
-    main_window.cpu.setChecked(False)
-    main_window.player2.setChecked(False)
+    #main_window.cpu.setChecked(False)
+    #main_window.player2.setChecked(False)
 
 
 
