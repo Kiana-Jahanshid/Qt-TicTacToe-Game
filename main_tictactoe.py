@@ -1,5 +1,5 @@
 import sys 
-from PySide6.QtWidgets import QApplication , QMessageBox 
+from PySide6.QtWidgets import QApplication , QMessageBox  , QGroupBox , QRadioButton
 from PySide6.QtUiTools import QUiLoader
 from functools import partial
 import random
@@ -12,7 +12,7 @@ def check():
                 msg_box =  QMessageBox( text= "  🎉✨ player 1 wins ✨🎉 ")
                 x_score += 1
                 main_window.xscore.setText(f"X score : {x_score}")                
-                msg_box.exec() 
+                msg_box.exec() # ya show() benevisim ,msg-box ro ham global mikonim
         if buttons[0][j].text() == "X" and buttons[1][j].text() == "X" and buttons[2][j].text() =="X" :
             msg_box =  QMessageBox( text= "  🎉✨ player 1 wins ✨🎉 ")
             x_score += 1
@@ -55,43 +55,42 @@ def check():
 
 
 
-def play(row , col ):
-    global player
-    global buttons
+def play(row , col):
+    global player , buttons , mode , cpu_push_button 
     main_window.player2.setChecked(True)
+    main_window.cpu.setChecked(False)
 
-    if player == 1 :
-        buttons[row][col].setText("X")
-        buttons[row][col].setStyleSheet("color : red; border-radius: 10px; ")       
-        player = 2 
+    if mode == "player2" :
+        if player == 1 :
+            buttons[row][col].setText("X")
+            buttons[row][col].setStyleSheet("color : red; border-radius: 10px; ")       
+            player = 2 
+            check()
+        elif player == 2 :
+            buttons[row][col].setText("O")
+            buttons[row][col].setStyleSheet("color : cyan; border-radius: 10px; ")       
+            player = 1
+
         check()
-    elif player == 2 :
-        buttons[row][col].setText("O")
-        buttons[row][col].setStyleSheet("color : cyan; border-radius: 10px; ")       
-        player = 1
-
-    check()
 
 
-def play_vs_cpu(row , col ):
-    global player , cpu_push_button
-    global buttons 
-    global flag
-    main_window.cpu.setChecked(True)
+    elif mode == "cpu" :
+        main_window.cpu.setChecked(True)
+        main_window.player2.setChecked(False)
 
-    if player == 1 :
-        buttons[row][col].setText("X")
-        buttons[row][col].setStyleSheet("color : red; border-radius: 10px; ")       
+        if player == 1 :
+            buttons[row][col].setText("X")
+            buttons[row][col].setStyleSheet("color : red; border-radius: 10px; ")       
+            check()
+            while cpu_push_button == False :
+                i = random.randint(0 , 2)
+                j = random.randint(0 , 2)
+                if buttons[i][j].text() != "X" and buttons[i][j].text() != "O" and buttons[i][j].text() == "" :
+                    buttons[i][j].setText("O")
+                    buttons[i][j].setStyleSheet("color : cyan; border-radius: 10px; ")       
+                    cpu_push_button = True
         check()
-        while cpu_push_button == False :
-            i = random.randint(0 , 2)
-            j = random.randint(0 , 2)
-            if buttons[i][j].text() != "X" and buttons[i][j].text() != "O" and buttons[i][j].text() == "" :
-                buttons[i][j].setText("O")
-                buttons[i][j].setStyleSheet("color : cyan; border-radius: 10px; ")       
-                cpu_push_button = True
-    check()
-    cpu_push_button = False
+        cpu_push_button = False
 
 
 
@@ -107,20 +106,30 @@ def new_game():
     for i in range(3):
         for j in range(3):
             buttons[i][j].setText("")
-    #main_window.cpu.setChecked(False)
-    #main_window.player2.setChecked(False)
 
 
+def createFirstExclusiveGroup():
+    groupBox = QGroupBox()
+
+    main_window.cpu = QRadioButton("&Radio button 1")
+    main_window.player2 = QRadioButton("R&adio button 2")
+
+    main_window.cpu.setChecked(True)
+    return groupBox
+
+def select_mode (input):
+    global mode 
+    mode = input
+    return mode
 
 app = QApplication(sys.argv)
 player = 1 
-flag = 0
 cpu_push_button = False
 x_score = 0 
 o_score = 0
 draw = 0
 loader = QUiLoader()
-main_window = loader.load("TicTacToe.ui")
+main_window = loader.load("Assignment18\Qt Tic Tac Toe\TicTacToe.ui")
 main_window.show()
 main_window.setWindowTitle("Tic Tac Toe")
 
@@ -131,25 +140,16 @@ buttons = [[main_window.btn1 , main_window.btn2 , main_window.btn3],
            [main_window.btn7 , main_window.btn8 , main_window.btn9]]
 
 
-# if flag == 0 :
-#     for i in range(3):
-#         for j in range(3):
-#             buttons[i][j].clicked.connect(partial(play , i , j))
-# elif flag == 1 :
+
 for i in range(3):
     for j in range(3):
-        buttons[i][j].clicked.connect(partial(play_vs_cpu , i , j))    
+        buttons[i][j].clicked.connect(partial(play , i , j))
+   
 
- 
 
 
-#main_window.player2.clicked.connect(partial(play , i , j))
-main_window.cpu.clicked.connect(partial(play_vs_cpu , i , j))
-# if main_window.cpu.clicked :
-#     main_window.cpu.setChecked(True)
-# elif main_window.player2.clicked :
-#     main_window.player2.setChecked(True)
-
+main_window.player2.clicked.connect(partial(select_mode , "player2"))
+main_window.cpu.clicked.connect(partial(select_mode , "cpu"))
 main_window.about.clicked.connect(about)
 main_window.newgame.clicked.connect(new_game)       
 
